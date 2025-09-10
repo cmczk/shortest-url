@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/cmczk/shortest-url/internal/storage"
@@ -45,7 +46,7 @@ func New(storagePath string) (*Storage, error) {
 func (s *Storage) Save(newURL, alias string) (int64, error) {
 	const op = "storage.sqlite.Save"
 
-	stmt, err := s.db.Prepare(`INSERT INTO urls (url, alias) VALUES (?, ?)`)
+	stmt, err := s.db.Prepare(`INSERT INTO urls (url, alias) VALUES (?, ?);`)
 	if err != nil {
 		return 0, fmt.Errorf("%s: cannot prepare statement saving new url: %w", op, err)
 	}
@@ -65,4 +66,41 @@ func (s *Storage) Save(newURL, alias string) (int64, error) {
 	}
 
 	return id, nil
+}
+
+func (s *Storage) GetURL(alias string) (string, error) {
+	const op = "storage.sqlite.GetURL"
+
+	stmt, err := s.db.Prepare(`SELECT url FROM urls WHERE alias = ?;`)
+	if err != nil {
+		return "", fmt.Errorf("%s: cannot prepare statement getting url by alias: %w", op, err)
+	}
+
+	var urlByAlias string
+	err = stmt.QueryRow(alias).Scan(&urlByAlias)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", storage.ErrURLNotFound
+		}
+
+		return "", fmt.Errorf("%s: error executing statement: %w", op, err)
+	}
+
+	return urlByAlias, nil
+}
+
+func (s *Storage) DeleteURL(alias string) error {
+	const op = "storage.sqlite.GetURL"
+
+	stmt, err := s.db.Prepare(`DELETE FROM urls WHERE alias = ?`)
+	if err != nil {
+		return fmt.Errorf("%s: cannot prepare statement deleting url by alias: %w", op, err)
+	}
+
+	_, err = stmt.Exec(alias)
+	if err != nil {
+		return fmt.Errorf("%s: cannot delete url by alias: %w", op, err)
+	}
+
+	return nil
 }

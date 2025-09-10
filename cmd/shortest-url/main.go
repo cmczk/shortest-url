@@ -18,16 +18,20 @@ const (
 func main() {
 	cfg := config.MustLoad()
 	log := setupLogger(cfg.Env)
+
+	log.Info("starting shortest url app", slog.String("env", cfg.Env))
+	log.Debug("debug messages are enabled")
+
 	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
 		log.Error("cannot init storage", sl.Err(err))
 		os.Exit(1)
 	}
 
+	log.Info("storage connected")
+
 	_ = storage
 
-	log.Info("starting shortest url app", slog.String("env", cfg.Env))
-	log.Debug("debug messages are enabled")
 }
 
 func setupLogger(env string) *slog.Logger {
