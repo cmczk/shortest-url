@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/cmczk/shortest-url/internal/storage"
+	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -38,4 +40,29 @@ func New(storagePath string) (*Storage, error) {
 	}
 
 	return &Storage{db: db}, nil
+}
+
+func (s *Storage) Save(newURL, alias string) (int64, error) {
+	const op = "storage.sqlite.Save"
+
+	stmt, err := s.db.Prepare(`INSERT INTO urls (url, alias) VALUES (?, ?)`)
+	if err != nil {
+		return 0, fmt.Errorf("%s: cannot prepare statement saving new url: %w", op, err)
+	}
+
+	res, err := stmt.Exec(newURL, alias)
+	if err != nil {
+		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+			return 0, storage.ErrURLExists
+		}
+
+		return 0, fmt.Errorf("%s: cannot save new url: %w", op, err)
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("%s: cannot get id of new url: %w", op, err)
+	}
+
+	return id, nil
 }
