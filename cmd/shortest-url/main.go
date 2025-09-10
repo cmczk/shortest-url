@@ -5,8 +5,11 @@ import (
 	"os"
 
 	"github.com/cmczk/shortest-url/internal/config"
+	customLogger "github.com/cmczk/shortest-url/internal/http-server/middleware/logger"
 	"github.com/cmczk/shortest-url/internal/lib/logger/sl"
 	"github.com/cmczk/shortest-url/internal/storage/sqlite"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
@@ -22,7 +25,7 @@ func main() {
 	log.Info("starting shortest url app", slog.String("env", cfg.Env))
 	log.Debug("debug messages are enabled")
 
-	storage, err := sqlite.New(cfg.StoragePath)
+	_, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
 		log.Error("cannot init storage", sl.Err(err))
 		os.Exit(1)
@@ -30,8 +33,11 @@ func main() {
 
 	log.Info("storage connected")
 
-	_ = storage
-
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(customLogger.New(log))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
 }
 
 func setupLogger(env string) *slog.Logger {
