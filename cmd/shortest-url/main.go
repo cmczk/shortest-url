@@ -2,9 +2,11 @@ package main
 
 import (
 	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/cmczk/shortest-url/internal/config"
+	"github.com/cmczk/shortest-url/internal/http-server/http-server/handlers/url/save"
 	customLogger "github.com/cmczk/shortest-url/internal/http-server/middleware/logger"
 	"github.com/cmczk/shortest-url/internal/lib/logger/sl"
 	"github.com/cmczk/shortest-url/internal/storage/sqlite"
@@ -25,7 +27,7 @@ func main() {
 	log.Info("starting shortest url app", slog.String("env", cfg.Env))
 	log.Debug("debug messages are enabled")
 
-	_, err := sqlite.New(cfg.StoragePath)
+	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
 		log.Error("cannot init storage", sl.Err(err))
 		os.Exit(1)
@@ -38,6 +40,24 @@ func main() {
 	router.Use(customLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
+
+	router.Post("/url", save.New(log, storage))
+
+	log.Info("starting server", "address", cfg.HTTPServer.Address)
+
+	srv := &http.Server{
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server", sl.Err(err))
+	}
+
+	log.Error("server stopped")
 }
 
 func setupLogger(env string) *slog.Logger {
