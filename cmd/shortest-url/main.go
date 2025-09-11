@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/cmczk/shortest-url/internal/config"
-	"github.com/cmczk/shortest-url/internal/http-server/http-server/handlers/url/save"
+	"github.com/cmczk/shortest-url/internal/http-server/handlers/url/save"
 	customLogger "github.com/cmczk/shortest-url/internal/http-server/middleware/logger"
 	"github.com/cmczk/shortest-url/internal/lib/logger/sl"
 	"github.com/cmczk/shortest-url/internal/storage/sqlite"
