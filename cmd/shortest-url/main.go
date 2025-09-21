@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/cmczk/shortest-url/internal/config"
+	"github.com/cmczk/shortest-url/internal/http-server/handlers/redirect"
 	"github.com/cmczk/shortest-url/internal/http-server/handlers/url/save"
 	customLogger "github.com/cmczk/shortest-url/internal/http-server/middleware/logger"
 	"github.com/cmczk/shortest-url/internal/lib/logger/sl"
@@ -22,6 +23,7 @@ const (
 
 func main() {
 	cfg := config.MustLoad()
+
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting shortest url app", slog.String("env", cfg.Env))
@@ -42,6 +44,7 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(log, storage))
+	router.Get("/{alias}", redirect.New(log, storage))
 
 	log.Info("starting server", "address", cfg.HTTPServer.Address)
 

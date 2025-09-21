@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -21,6 +22,8 @@ type HTTPServer struct {
 }
 
 func MustLoad() *Config {
+	fmt.Println("start config reading")
+
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
 		log.Fatal("cannot find CONFIG_PATH environment variable")

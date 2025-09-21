@@ -7,7 +7,6 @@ import (
 
 	"github.com/cmczk/shortest-url/internal/storage"
 	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type Storage struct {
