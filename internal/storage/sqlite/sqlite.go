@@ -67,7 +67,7 @@ func (s *Storage) GetURL(alias string) (string, error) {
 
 	stmt, err := s.db.Prepare("SELECT url FROM urls WHERE alias = ?")
 	if err != nil {
-		return "", fmt.Errorf("%s: cannot prepare statement: %w")
+		return "", fmt.Errorf("%s: cannot prepare statement: %w", op, err)
 	}
 
 	var urlToGet string
@@ -87,7 +87,7 @@ func (s *Storage) DeleteURL(alias string) error {
 
 	stmt, err := s.db.Prepare("DELETE FROM urls WHERE alias = ?")
 	if err != nil {
-		return fmt.Errorf("%s: cannot prepare statement: %w")
+		return fmt.Errorf("%s: cannot prepare statement: %w", op, err)
 	}
 
 	if _, err := stmt.Exec(alias); err != nil {
