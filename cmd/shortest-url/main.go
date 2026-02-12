@@ -8,6 +8,8 @@ import (
 	"github.com/cmczk/shortest-url/internal/lib/logger"
 	"github.com/cmczk/shortest-url/internal/lib/logger/sl"
 	"github.com/cmczk/shortest-url/internal/storage/sqlite"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -28,5 +30,7 @@ func main() {
 
 	_ = storage
 
-	// TODO: init router
+	router := chi.NewRouter()
+
+	router.Use(middleware.RequestID)
 }
