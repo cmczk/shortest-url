@@ -7,6 +7,7 @@ import (
 	"github.com/cmczk/shortest-url/internal/config"
 	"github.com/cmczk/shortest-url/internal/lib/logger"
 	"github.com/cmczk/shortest-url/internal/lib/logger/sl"
+	mwLogger "github.com/cmczk/shortest-url/internal/server/middleware/logger"
 	"github.com/cmczk/shortest-url/internal/storage/sqlite"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -33,4 +34,7 @@ func main() {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID)
+	router.Use(mwLogger.New(log))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
 }
